@@ -10,7 +10,9 @@ Ci::task do
 
   sh 'curl -s http://127.0.0.1:5984'
 
-  ruby 'test/unit/storage.rb --couch', :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
-  ruby 'test/functional/test.rb --couch', :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
+  options :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
+
+  ruby 'test/unit/storage.rb --couch'
+  ruby 'test/functional/test.rb --couch'
 end
 

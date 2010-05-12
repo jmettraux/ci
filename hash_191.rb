@@ -7,8 +7,10 @@ Ci::task do
 
   git 'http://github.com/jmettraux/ruote.git'
 
-  ruby 'test/unit/test.rb', :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
-  ruby 'test/unit/storage.rb', :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
-  ruby 'test/functional/test.rb', :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
+  options :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
+
+  ruby 'test/unit/test.rb'
+  ruby 'test/unit/storage.rb'
+  ruby 'test/functional/test.rb'
 end
 
