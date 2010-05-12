@@ -15,11 +15,11 @@ module Ci
 
     def initialize (&block)
 
-      start = Time.now
-
       @message = []
 
       FileUtils.mkdir('logs') rescue nil
+
+      @start = Time.now
 
       instance_eval(&block)
 
@@ -83,7 +83,7 @@ module Ci
 
     def send_mail
 
-      say("Task took #{Time.now - start} seconds.")
+      say("Task took #{Time.now - @start} seconds.")
 
       script = ci_script
       t = Time.now
