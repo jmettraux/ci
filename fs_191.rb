@@ -7,8 +7,7 @@ Ci::task do
 
   git 'http://github.com/jmettraux/ruote.git'
 
-  #sh 'curl -s http://127.0.0.1:5984'
-
+  ruby 'test/unit/storage.rb --fs', :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
   ruby 'test/functional/test.rb --fs', :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
 end
 
