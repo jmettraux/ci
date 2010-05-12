@@ -1,4 +1,5 @@
 
+require 'open3'
 require 'timeout'
 require 'fileutils'
 #require 'pathname'
@@ -77,15 +78,38 @@ module Ci
 
       # TODO : use popen instead of backticks
 
+      say("#{command}")
+
       Timeout::timeout(to) do
-        say("#{command}")
-        say(`#{command} 2>&1`) unless opts[:blank]
+
+        #say(`#{command} 2>&1`) unless opts[:blank]
+        unless opts[:blank]
+          execute(command)
+          say(@output)
+        end
       end
+
     rescue Timeout::Error => te
+      say(@output)
       say("...expired after #{to} seconds.")
     end
 
     protected
+
+    def execute (command)
+
+      command = "#{command} 2>&1"
+
+      @output = ''
+
+      Open3.popen3(command) do |stdin, stdout, stderr|
+        loop do
+          s = stdout.read(25)
+          break unless s
+          @output << s
+        end
+      end
+    end
 
     def ci_script
 
