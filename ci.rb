@@ -2,19 +2,27 @@
 require 'open3'
 require 'timeout'
 require 'fileutils'
-#require 'pathname'
 
 
 module Ci
 
-  def self.task (&block)
+  def self.all (&block)
 
-    Context.new(&block)
+    @all = block if block
+
+    @all
+  end
+
+  def self.task (name, &block)
+
+    Context.new(name, &block)
   end
 
   class Context
 
-    def initialize (&block)
+    def initialize (name, &block)
+
+      @name = name.to_s
 
       @opts = {}
       @message = []
@@ -23,7 +31,19 @@ module Ci
 
       @start = Time.now
 
-      instance_eval(&block)
+      begin
+
+        instance_eval(&Ci.all) if Ci.all
+
+        instance_eval(&block)
+
+      rescue Exception => e
+        p e
+        say("!!! exception in task #{@name}\n")
+        say("=" * 80)
+        say(e.backtrace)
+        say("=" * 80)
+      end
 
       send_mail
     end
@@ -111,10 +131,9 @@ module Ci
       end
     end
 
-    def ci_script
-
-      $0.match(/([^\/]+\.rb)$/)[1]
-    end
+    #def ci_script
+    #  $0.match(/([^\/]+\.rb)$/)[1]
+    #end
 
     def say (s)
 
@@ -125,16 +144,15 @@ module Ci
 
       say("Task took #{Time.now - @start} seconds.")
 
-      script = ci_script
       t = Time.now
       st = t.strftime('%Y%m%d_%H%M')
 
       h = {}
       h['From'] = "ruote ci<ci@#{`hostname -f`.strip}>"
-      h['Subject'] = "#{script} #{st}"
+      h['Subject'] = "#{@name} #{st}"
       h = h.collect { |k, v| "-a \"#{k}: #{v}\"" }.join(' ')
 
-      fname = "logs/#{script}_#{st}.txt"
+      fname = "logs/#{@name}_#{st}.txt".gsub(/ /, '_')
 
       File.open(fname, 'w') { |f| f.puts(@message.join("\r\n")) }
       `cat #{fname} | mail #{h} #{@mailto}`

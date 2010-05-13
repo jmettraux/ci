@@ -1,0 +1,4 @@
+
+[o] gather all tasks in 1 file
+[o] Task#initialize intercept Exception => e
+
