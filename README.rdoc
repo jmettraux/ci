@@ -3,7 +3,7 @@
 
 continuous interjection
 
-Thanks RVM and Bundler !
+Thanks RVM, Bundler and open4 !
 
 
 == license

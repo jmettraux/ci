@@ -23,9 +23,11 @@
 #++
 
 
-require 'open3'
 require 'timeout'
 require 'fileutils'
+
+require 'rubygems'
+require 'open4' # gem install open4
 
 
 module Ci
@@ -50,6 +52,7 @@ module Ci
 
       @opts = {}
       @message = []
+      @exitstatus = 0 # success as of now
 
       FileUtils.mkdir('logs') rescue nil
 
@@ -62,11 +65,16 @@ module Ci
         instance_eval(&block)
 
       rescue Exception => e
+
         p e
+        e.backtrace.each { |l| puts l }
+
         say("!!! exception in task #{@name}\n")
         say("=" * 80)
         say(e.backtrace)
         say("=" * 80)
+
+        @exitstatus = 1
       end
 
       send_mail
@@ -106,7 +114,9 @@ module Ci
         command = "~/.rvm/bin/rvm #{rvm} #{command}"
       end
 
-      sh(command, opts)
+      exitstatus = sh(command, opts)
+
+      @exitstatus = exitstatus if exitstatus != 0
     end
 
     def sh (command, opts={})
@@ -122,18 +132,25 @@ module Ci
 
       say("#{command}")
 
+      exitstatus = nil
+
       Timeout::timeout(to) do
 
         #say(`#{command} 2>&1`) unless opts[:blank]
         unless opts[:blank]
-          execute(command)
+          exitstatus = execute(command)
           say(@output)
         end
       end
 
+      exitstatus
+
     rescue Timeout::Error => te
+
       say(@output)
       say("...expired after #{to} seconds.")
+
+      1 # exitstatus (failed)
     end
 
     protected
@@ -144,18 +161,16 @@ module Ci
 
       @output = ''
 
-      Open3.popen3(command) do |stdin, stdout, stderr|
+      status = Open4.popen4(command) do |pid, stdin, stdout, stderr|
         loop do
           s = stdout.read(25)
           break unless s
           @output << s
         end
       end
-    end
 
-    #def ci_script
-    #  $0.match(/([^\/]+\.rb)$/)[1]
-    #end
+      status.exitstatus
+    end
 
     def say (s)
 
@@ -169,9 +184,11 @@ module Ci
       t = Time.now
       st = t.strftime('%Y%m%d_%H%M')
 
+      success = @exitstatus == 0 ? '[ok]' : '[FAILED]'
+
       h = {}
       h['From'] = "ruote ci<ci@#{`hostname -f`.strip}>"
-      h['Subject'] = "#{@name} #{st}"
+      h['Subject'] = "#{success} #{@name} #{st}"
       h = h.collect { |k, v| "-a \"#{k}: #{v}\"" }.join(' ')
 
       fname = "logs/#{@name}_#{st}.txt".gsub(/ /, '_')
