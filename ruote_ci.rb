@@ -17,8 +17,6 @@ Ci::task 'ruote 1.8.7' do
   ruby 'test/functional/test.rb'
 end
 
-exit
-
 Ci::task 'ruote 1.9.1' do
 
   options :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
