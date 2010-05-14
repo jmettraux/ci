@@ -1,7 +1,12 @@
 
 = ci
 
-continous interjection
+continuous interjection
 
-Thanks RVM !
+Thanks RVM and Bundler !
+
+
+== license
+
+MIT
 
