@@ -3,10 +3,99 @@
 
 continuous interjection
 
-Thanks RVM, Bundler and open4 !
+Nothing special here, just a tiny CI tool, for my personal use (for ruote mainly).
+
+
+== usage
+
+I have
+
+  # /etc/cron.d/ruote_ci
+
+  00 11 * * * jmettraux cd ~/ci && ./ci_runner.sh ruote_ci.rb
+  00 18 * * * jmettraux cd ~/ci && ./ci_runner.sh ruote_ci.rb
+  00 01 * * * jmettraux cd ~/ci && ./ci_runner.sh ruote_ci.rb
+
+ci_runner.sh makes sure RVM is available
+
+  #!/bin/bash
+  source /home/jmettraux/.rvm/scripts/rvm
+  cd . && ruby $1
+
+the ci tasks (ruote_ci.rb) look like
+
+  require 'ci'
+
+  Ci::all do
+
+    mailto 'jmettraux@gmail.com'
+
+    git 'http://github.com/jmettraux/ruote.git'
+  end
+
+  Ci::task 'ruote 1.8.7' do
+
+    options :dir => 'ruote', :rvm => '1.8.7@ruote_yajl'
+
+    ruby 'test/unit/test.rb'
+    ruby 'test/unit/storage.rb'
+    ruby 'test/functional/test.rb'
+  end
+
+  Ci::task 'ruote 1.9.1' do
+
+    options :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
+
+    ruby 'test/unit/test.rb'
+    ruby 'test/unit/storage.rb'
+    ruby 'test/functional/test.rb'
+  end
+
+It sends me 1 email per Ci::task. Those emails look like
+
+  Date: Fri, 14 May 2010 11:07:46 +0900
+  To: jmettraux@gmail.com
+  Subject: [ok] ruote 1.8.7 20100514_1107
+  From: ruote ci<ci@bakemono.example.com>
+
+  rm -fR ruote
+
+  git clone --quiet http://github.com/jmettraux/ruote.git
+
+  cd ruote && ~/.rvm/bin/rvm 1.8.7@ruote_yajl ruby test/unit/test.rb
+  <i>ruby-1.8.7-p249: ruby 1.8.7 (2010-01-10 patchlevel 249) [i686-linux]  </i>
+  ruby 1.8.7 (2010-01-10 patchlevel 249) [i686-linux]
+  Fri May 14 11:06:13 +0900 2010
+  Loaded suite test/unit/test
+  Started
+  .................................................................................
+  Finished in 0.129712 seconds.
+
+  81 tests, 165 assertions, 0 failures, 0 errors
+
+  cd ruote && ~/.rvm/bin/rvm 1.8.7@ruote_yajl ruby test/unit/storage.rb
+  <i>ruby-1.8.7-p249: ruby 1.8.7 (2010-01-10 patchlevel 249) [i686-linux]  </i>
+  ruby 1.8.7 (2010-01-10 patchlevel 249) [i686-linux]
+  Fri May 14 11:06:14 +0900 2010
+  Loaded suite test/unit/storage
+  Started
+  ...............
+  Finished in 0.013415 seconds.
+
+  15 tests, 28 assertions, 0 failures, 0 errors
+
+  Task took 104.548031 seconds.
+
+
+== credits
+
+Many thanks to the RVM and open4 authors and contributors.
+
+http://rvm.beginrescueend.com/
+http://github.com/ahoward/open4
 
 
 == license
 
-MIT
+although I'm the only user, the license is MIT.
 

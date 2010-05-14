@@ -71,6 +71,7 @@ module Ci
 
         say("!!! exception in task #{@name}\n")
         say("=" * 80)
+        say(e)
         say(e.backtrace)
         say("=" * 80)
 
