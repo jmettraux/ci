@@ -103,7 +103,7 @@ Ci::task 'ruote-couch 1.8.7' do
   options :dir => 'ruote', :rvm => '1.8.7@ruote_yajl'
 
   ruby 'test/unit/storage.rb -- --couch'
-  ruby 'test/functional/test.rb -- --couch'
+  ruby 'test/functional/test.rb -- --couch', :timeout => 40 * 60
 end
 
 Ci::task 'ruote-couch 1.9.1' do
@@ -115,6 +115,6 @@ Ci::task 'ruote-couch 1.9.1' do
   options :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
 
   ruby 'test/unit/storage.rb --couch'
-  ruby 'test/functional/test.rb --couch'
+  ruby 'test/functional/test.rb --couch', :timout => 40 * 60
 end
 

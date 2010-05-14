@@ -2,3 +2,9 @@
 [o] gather all tasks in 1 file
 [o] Task#initialize intercept Exception => e
 
+[ ] use bundler
+[ ] use open4  http://github.com/ahoward/open4
+
+[ ] only send email on error ?
+    or write [ERROR] vs [ok] in subject
+

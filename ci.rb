@@ -96,8 +96,6 @@ module Ci
       to = oo[:timeout] || 20 * 60
         # 20 minutes default timeout (1200s)
 
-      # TODO : use popen instead of backticks
-
       say("#{command}")
 
       Timeout::timeout(to) do
