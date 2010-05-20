@@ -42,11 +42,11 @@ Ci::task 'ruote fs 1.9.1' do
   ruby 'test/functional/test.rb --fs'
 end
 
-Ci::task 'ruote-dm 1.8.7' do
+Ci::task 'ruote-dm pgsql 1.8.7' do
 
   git 'http://github.com/jmettraux/ruote-dm.git'
 
-  sh 'cp dm_connection.rb ruote-dm/test/integration_connection.rb'
+  sh 'cp dm_pgsql_connection.rb ruote-dm/test/integration_connection.rb'
 
   sh 'psql --version'
 
@@ -56,13 +56,41 @@ Ci::task 'ruote-dm 1.8.7' do
   ruby 'test/functional/test.rb -- --dm'
 end
 
-Ci::task 'ruote-dm 1.9.1' do
+Ci::task 'ruote-dm pgsql 1.9.1' do
 
   git 'http://github.com/jmettraux/ruote-dm.git'
 
-  sh 'cp dm_connection.rb ruote-dm/test/integration_connection.rb'
+  sh 'cp dm_pgsql_connection.rb ruote-dm/test/integration_connection.rb'
 
   sh 'psql --version'
+
+  options :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
+
+  ruby 'test/unit/storage.rb -- --dm'
+  ruby 'test/functional/test.rb -- --dm'
+end
+
+Ci::task 'ruote-dm mysql 1.8.7' do
+
+  git 'http://github.com/jmettraux/ruote-dm.git'
+
+  sh 'cp dm_mysql_connection.rb ruote-dm/test/integration_connection.rb'
+
+  sh 'mysql --version'
+
+  options :dir => 'ruote', :rvm => '1.8.7@ruote_yajl'
+
+  ruby 'test/unit/storage.rb -- --dm'
+  ruby 'test/functional/test.rb -- --dm'
+end
+
+Ci::task 'ruote-dm mysql 1.9.1' do
+
+  git 'http://github.com/jmettraux/ruote-dm.git'
+
+  sh 'cp dm_mysql_connection.rb ruote-dm/test/integration_connection.rb'
+
+  sh 'mysql --version'
 
   options :dir => 'ruote', :rvm => '1.9.1@ruote_yajl'
 
