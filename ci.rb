@@ -133,23 +133,25 @@ module Ci
 
       say("#{command}")
 
-      exitstatus = nil
+      status = nil
 
       Timeout::timeout(to) do
 
         #say(`#{command} 2>&1`) unless opts[:blank]
         unless opts[:blank]
-          exitstatus = execute(command)
+          status = execute(command)
           say(@output)
         end
       end
 
-      exitstatus
+      status.exitstatus
 
     rescue Timeout::Error => te
 
       say(@output)
       say("...expired after #{to} seconds.")
+
+      Process.kill('HUP', status.pid) rescue nil
 
       1 # exitstatus (failed)
     end
@@ -170,7 +172,7 @@ module Ci
         end
       end
 
-      status.exitstatus
+      status
     end
 
     def say (s)
@@ -181,6 +183,9 @@ module Ci
     def send_mail
 
       say("Task took #{Time.now - @start} seconds.")
+
+      say("\nremains :")
+      sh('ps aux | grep ruby', :dir => nil)
 
       t = Time.now
       st = t.strftime('%Y%m%d_%H%M')

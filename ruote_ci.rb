@@ -5,6 +5,8 @@ Ci::all do
 
   mailto 'jmettraux@gmail.com'
 
+  sh 'rvm -v'
+
   git 'http://github.com/jmettraux/ruote.git'
 end
 
