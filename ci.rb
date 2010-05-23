@@ -165,6 +165,9 @@ module Ci
       @output = ''
 
       status = Open4.popen4(command) do |pid, stdin, stdout, stderr|
+
+        say(" `--> in process #{pid}")
+
         loop do
           s = stdout.read(25)
           break unless s
