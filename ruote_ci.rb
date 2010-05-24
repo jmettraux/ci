@@ -28,6 +28,15 @@ Ci::task 'ruote 1.9.1' do
   ruby 'test/functional/test.rb'
 end
 
+Ci::task 'ruote 1.9.2' do
+
+  options :dir => 'ruote', :rvm => '1.9.2@ruote_yajl'
+
+  ruby 'test/unit/test.rb'
+  ruby 'test/unit/storage.rb'
+  ruby 'test/functional/test.rb'
+end
+
 Ci::task 'ruote fs 1.8.7' do
 
   options :dir => 'ruote', :rvm => '1.8.7@ruote_yajl'
@@ -43,6 +52,16 @@ Ci::task 'ruote fs 1.9.1' do
   ruby 'test/unit/storage.rb --fs'
   ruby 'test/functional/test.rb --fs'
 end
+
+Ci::task 'ruote fs 1.9.2' do
+
+  options :dir => 'ruote', :rvm => '1.9.2@ruote_yajl'
+
+  ruby 'test/unit/storage.rb --fs'
+  ruby 'test/functional/test.rb --fs'
+end
+
+# not going further with 1.9.2 for now
 
 Ci::task 'ruote-dm pgsql 1.8.7' do
 

@@ -112,7 +112,7 @@ module Ci
       command = "ruby #{path}"
 
       if rvm = oo[:rvm]
-        command = "~/.rvm/bin/rvm #{rvm} #{command}"
+        command = "~/.rvm/bin/rvm #{rvm}, #{command}"
       end
 
       exitstatus = sh(command, opts)
