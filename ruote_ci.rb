@@ -28,14 +28,14 @@ Ci::task 'ruote 1.9.1' do
   ruby 'test/functional/test.rb'
 end
 
-Ci::task 'ruote 1.9.2-head' do
-
-  options :dir => 'ruote', :rvm => '1.9.2-head@ruote_yajl'
-
-  ruby 'test/unit/test.rb'
-  ruby 'test/unit/storage.rb'
-  ruby 'test/functional/test.rb'
-end
+#Ci::task 'ruote 1.9.2-head' do
+#
+#  options :dir => 'ruote', :rvm => '1.9.2-head@ruote_yajl'
+#
+#  ruby 'test/unit/test.rb'
+#  ruby 'test/unit/storage.rb'
+#  ruby 'test/functional/test.rb'
+#end
 
 Ci::task 'ruote fs 1.8.7' do
 
@@ -53,21 +53,19 @@ Ci::task 'ruote fs 1.9.1' do
   ruby 'test/functional/test.rb --fs'
 end
 
-Ci::task 'ruote fs 1.9.2-head' do
-
-  options :dir => 'ruote', :rvm => '1.9.2-head@ruote_yajl'
-
-  ruby 'test/unit/storage.rb --fs'
-  ruby 'test/functional/test.rb --fs'
-end
-
-# not going further with 1.9.2-head for now
+#Ci::task 'ruote fs 1.9.2-head' do
+#
+#  options :dir => 'ruote', :rvm => '1.9.2-head@ruote_yajl'
+#
+#  ruby 'test/unit/storage.rb --fs'
+#  ruby 'test/functional/test.rb --fs'
+#end
 
 Ci::task 'ruote-dm pgsql 1.8.7' do
 
   git 'http://github.com/jmettraux/ruote-dm.git'
 
-  sh 'cp dm_pgsql_connection.rb ruote-dm/test/integration_connection.rb'
+  sh 'cp dm_pgsql_connection.rb ruote-dm/test/functional_connection.rb'
 
   sh 'psql --version'
 
@@ -81,7 +79,7 @@ Ci::task 'ruote-dm pgsql 1.9.1' do
 
   git 'http://github.com/jmettraux/ruote-dm.git'
 
-  sh 'cp dm_pgsql_connection.rb ruote-dm/test/integration_connection.rb'
+  sh 'cp dm_pgsql_connection.rb ruote-dm/test/functional_connection.rb'
 
   sh 'psql --version'
 
@@ -95,7 +93,7 @@ Ci::task 'ruote-dm mysql 1.8.7' do
 
   git 'http://github.com/jmettraux/ruote-dm.git'
 
-  sh 'cp dm_mysql_connection.rb ruote-dm/test/integration_connection.rb'
+  sh 'cp dm_mysql_connection.rb ruote-dm/test/functional_connection.rb'
 
   sh 'mysql --version'
 
@@ -109,7 +107,7 @@ Ci::task 'ruote-dm mysql 1.9.1' do
 
   git 'http://github.com/jmettraux/ruote-dm.git'
 
-  sh 'cp dm_mysql_connection.rb ruote-dm/test/integration_connection.rb'
+  sh 'cp dm_mysql_connection.rb ruote-dm/test/functional_connection.rb'
 
   sh 'mysql --version'
 

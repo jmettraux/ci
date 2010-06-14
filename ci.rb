@@ -152,6 +152,8 @@ module Ci
       say("...expired after #{to} seconds.")
 
       Process.kill('HUP', status.pid) rescue nil
+      `kill -9 #{status.pid}` rescue nil
+        # just to be sure
 
       1 # exitstatus (failed)
     end
