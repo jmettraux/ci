@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2010, John Mettraux, jmettraux@gmail.com
+# Copyright (c) 2010-2011, John Mettraux, jmettraux@gmail.com
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ require 'timeout'
 require 'fileutils'
 
 require 'rubygems'
-require 'open4' # gem install open4
+require 'open4'
 
 
 module Ci
@@ -39,12 +39,24 @@ module Ci
     @all
   end
 
+  def self.bundle (name, &block)
+
+    (@bundles ||= {})[name] = block
+  end
+
+  def self.bundles
+
+    @bundles
+  end
+
   def self.task (name, &block)
 
     Context.new(name, &block)
   end
 
   class Context
+
+    CI_RUBY = File.expand_path(File.join(File.dirname(__FILE__)), 'ci_ruby.rb')
 
     def initialize (name, &block)
 
@@ -95,24 +107,44 @@ module Ci
       @mailto = target
     end
 
-    def git (repo, opts={})
+    def rvm (opts)
 
-      m = repo.match(/\/([^\/]+)\.git/)
-
-      dir = m[1]
-
-      sh("rm -fR #{dir}", opts)
-      sh("git clone --quiet #{repo}", opts)
+      @opts[:rvm] = opts[:use]
     end
 
-    def ruby (path, opts={})
+#    def git (repo, opts={})
+#
+#      m = repo.match(/\/([^\/]+)\.git/)
+#
+#      dir = m[1]
+#
+#      sh("rm -fR #{dir}", opts)
+#      sh("git clone --quiet #{repo}", opts)
+#    end
 
-      oo = @opts.merge(opts)
+    def bundle (name, opts={})
 
-      command = "ruby #{path}"
+      block = Ci.bundles[name]
 
-      if rvm = oo[:rvm]
-        command = "~/.rvm/bin/rvm #{rvm}, #{command}"
+      context = BundleContext.new
+      context.instance_eval(&block)
+
+      context.save(directory(opts))
+
+      ruby(':bundle')
+    end
+
+    def ruby (*args)
+
+      opts = args.last.is_a?(Hash) ? args.pop : {}
+
+      opts[:timeout] ||= 30 * 60
+        # kill ruby scripts after 30 minutes
+
+      command = [ 'ruby', CI_RUBY ] + args
+
+      if rvm = opts[:rvm] || @opts[:rvm]
+        command = [ "#{ENV['HOME']}/.rvm/bin/rvm", "#{rvm}," ] + command
       end
 
       exitstatus = sh(command, opts)
@@ -122,62 +154,58 @@ module Ci
 
     def sh (command, opts={})
 
+      command = Array(command)
+
       oo = @opts.merge(opts)
 
-      if dir = oo[:dir]
-        command = "cd #{dir} && #{command}"
-      end
+      timeout = oo[:timeout]
 
-      to = oo[:timeout] || 20 * 60
-        # 20 minutes default timeout (1200s)
-
-      say("#{command}")
+      say(command.join(' '))
 
       status = nil
+      @output = ''
 
-      Timeout::timeout(to) do
+      dir = directory(opts)
 
-        #say(`#{command} 2>&1`) unless opts[:blank]
-        unless opts[:blank]
-          status = execute(command)
-          say(@output)
+      FileUtils.mkdir_p(dir)
+
+      Dir.chdir(dir) do
+
+        block = lambda {
+          Open4.popen4(*command) do |pid, stdin, stdout, stderr|
+            [ stdout, stderr ].each do |std|
+              loop do
+                s = std.read(28)
+                break unless s
+                @output << s
+              end
+            end
+          end
+        }
+
+        status = if timeout
+          Timeout.timeout(timeout, &block)
+        else
+          block.call
         end
       end
 
+      say(@output)
+
       status.exitstatus
 
-    rescue Timeout::Error => te
-
-      say(@output)
-      say("...expired after #{to} seconds.")
-
-      Process.kill('HUP', status.pid) rescue nil
-      `kill -9 #{status.pid}` rescue nil
-        # just to be sure
-
-      1 # exitstatus (failed)
+    rescue Exception => e
+      say("command")
+      say("  #{command}")
+      say("failed with")
+      say("  #{e.class} : #{e}")
     end
 
     protected
 
-    def execute (command)
+    def directory (opts)
 
-      command = "#{command} 2>&1"
-
-      @output = ''
-
-      status = Open4.popen4(command) do |pid, stdin, stdout, stderr|
-
-        say(" `--> in process #{pid}")
-
-        loop do
-          s = stdout.read(25)
-          break unless s
-          @output << s
-        end
-      end
-
-      status
+      "work/#{safe_name}/#{opts[:dir] || @opts[:dir] || '.'}/"
     end
 
     def say (s)
@@ -185,12 +213,17 @@ module Ci
       @message << s
     end
 
+    def safe_name
+
+      @name.gsub(/[\s]/, '_')
+    end
+
     def send_mail
 
       say("Task took #{Time.now - @start} seconds.")
 
-      say("\nremains :")
-      sh('ps aux | grep ruby', :dir => nil)
+      #say("\nremains :")
+      #sh('ps aux | grep ruby', :dir => nil)
 
       t = Time.now
       st = t.strftime('%Y%m%d_%H%M')
@@ -202,10 +235,52 @@ module Ci
       h['Subject'] = "#{success} #{@name} #{st}"
       h = h.collect { |k, v| "-a \"#{k}: #{v}\"" }.join(' ')
 
-      fname = "logs/#{@name}_#{st}.txt".gsub(/ /, '_')
+      fname = "logs/#{safe_name}_#{st}.txt"
 
-      File.open(fname, 'w') { |f| f.puts(@message.join("\r\n")) }
-      `cat #{fname} | mail #{h} #{@mailto}`
+      if ARGV.include?('--no-email')
+
+        puts "=" * 80
+        puts @message.join("\n")
+        puts "=" * 80
+
+      else
+
+        File.open(fname, 'w') { |f| f.puts(@message.join("\r\n")) }
+        `cat #{fname} | mail #{h} "#{@mailto}"`
+      end
+    end
+  end
+
+  class BundleContext
+
+    def initialize
+
+      @elements = []
+    end
+
+    def source (*args)
+
+      @elements << [ 'source', args ]
+    end
+
+    def gem (*args)
+
+      @elements << [ 'gem', args ]
+    end
+
+    def save (dir)
+
+      FileUtils.rm(File.join(dir, 'Gemfile.lock')) rescue nil
+        # always the latest
+
+      File.open(File.join(dir, 'Gemfile'), 'wb') do |f|
+        f.puts("#")
+        f.puts("# generated by ci on #{Time.now}")
+        f.puts("#")
+        @elements.each do |elt|
+          f.puts("#{elt.first} #{elt.last.inspect[1..-2]}")
+        end
+      end
     end
   end
 end
