@@ -1,0 +1,189 @@
+
+<!--
+  you can place this file in the S3 bucket where your ci outputs
+
+  original project : https://github.com/jmettraux/bucket
+-->
+
+<html>
+
+<head>
+
+<title>
+  bucket.s3/
+</title>
+
+<style>
+
+/*
+ * reset.css
+ */
+
+/* http://meyerweb.com/eric/tools/css/reset/ */
+/* v1.0 | 20080212 */
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	vertical-align: baseline;
+	background: transparent;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+
+/* remember to define focus styles! */
+:focus {
+	outline: 0;
+}
+
+/* remember to highlight inserts somehow! */
+ins {
+	text-decoration: none;
+}
+del {
+	text-decoration: line-through;
+}
+
+/* tables still need 'cellspacing="0"' in the markup */
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/*
+ * bucket.css
+ */
+
+body {
+  /*
+  font: 14px/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;
+  */
+  font: 12px/1.3em Monaco, Courier, monospaced;
+  color: #4d4d4d;
+  width: 90%;
+  margin: auto;
+}
+h1 {
+  font-size: 140%;
+  margin-top: 21px;
+  margin-bottom: 21px;
+}
+li:hover {
+  background-color: #dfdfdf;
+}
+.file-name {
+  display: inline-block;
+  width: 500px;
+}
+a {
+  color: black;
+  text-decoration: none;
+}
+a:visited {
+  color: #aeaeae;
+}
+.size {
+  display: inline-block;
+  width: 50px;
+}
+.last-modified {
+  display: inline-block;
+  width: 100px;
+  color: #aeaeae;
+}
+.failed a {
+  color: #C2361F;
+}
+.successful a {
+  color: #25BC22;
+}
+.failed a:visited {
+  color: #943020;
+}
+.successful a:visited {
+  color: #194C06;
+}
+
+</style>
+
+<script src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
+
+<script>
+
+  function listContent (marker) {
+
+    var uri = '..';
+    if (marker) uri = uri + '?marker=' + marker;
+
+    $.get(uri, function(data) {
+
+      var last = null;
+
+      $(data).find('Contents').each(function(index, elt) {
+
+        var key = $(elt).find('Key').text();
+        var lastModified = $(elt).find('LastModified').text();
+        var size = $(elt).find('Size').text();
+
+        var klass = key.match(/FAILED/) ? 'failed' : 'successful';
+
+        if (key === 'ci.html') return;
+
+        $('ul').prepend(
+          '<li class="' + klass + '">' +
+          '<span class="file-name">' +
+          '<a href="' + key + '">' + key + '</a>' +
+          '</span>' +
+          '<span class="size">' + size + '</span>' +
+          '<span class="last-modified">' + lastModified + '</span>' +
+          '</li>')
+        last = key;
+      });
+
+      if ($(data).find('IsTruncated').text() === 'true') listContent(last);
+    });
+  }
+
+  function loaded () {
+
+    //window.title = window.location.href;
+    $('h1').text(window.location.href);
+
+    listContent();
+  }
+</script>
+
+</head>
+
+<body onload="loaded()">
+
+  <h1>bucket</h1>
+
+  <ul>
+  </ul>
+</body>
+</html>
+
