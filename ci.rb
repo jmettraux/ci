@@ -232,7 +232,9 @@ module Ci
       only = ARGV.collect { |a|
         m = a.match(/^--only-(.+)$/)
         m ? m[1] : nil
-      }.compact.first.to_sym
+      }.compact.first
+
+      only = only.to_sym if only
 
       raise ArgumentError.new(
         "no :#{only} reporter"
