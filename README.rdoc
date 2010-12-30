@@ -19,7 +19,7 @@ I have
 ci_runner.sh makes sure RVM is available
 
   #!/bin/bash
-  source /home/jmettraux/.rvm/scripts/rvm
+  source $HOME/.rvm/scripts/rvm
   cd . && ruby $1
 
 the ci tasks (ruote_ci.rb) look like
@@ -28,9 +28,17 @@ the ci tasks (ruote_ci.rb) look like
 
   Ci::all do
 
-    mailto 'jmettraux@gmail.com'
-
     sh 'rvm -v'
+
+    reporter :stdout
+
+    reporter :mail, :to => 'jmettraux@gmail.com'
+
+    reporter(
+      :s3,
+      :bucket => 'ruote-ci',
+      :access_key_id => arg('aki'), # --aki xxx
+      :secret_access_key => arg('sak')) # --sak yyy
   end
 
   Ci::bundle 'ruote' do
@@ -39,6 +47,7 @@ the ci tasks (ruote_ci.rb) look like
     gem 'builder'
     gem 'mailtrap'
     gem 'yajl-ruby', :require => 'yajl'
+    gem 'json_pure', '1.4.6'
     gem 'ruote', :git => 'http://github.com/jmettraux/ruote.git', :branch => 'ruote2.1'
   end
 

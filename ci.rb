@@ -62,11 +62,13 @@ module Ci
 
       @name = name.to_s
 
+      @reporters = {}
+
       @opts = {}
       @message = []
       @exitstatus = 0 # success as of now
 
-      FileUtils.mkdir('logs') rescue nil
+      FileUtils.mkdir('tmp') rescue nil
 
       @start = Time.now
 
@@ -90,7 +92,7 @@ module Ci
         @exitstatus = 1
       end
 
-      send_mail
+      emit_report
     end
 
     def options (opts={})
@@ -102,9 +104,9 @@ module Ci
       end
     end
 
-    def mailto (target)
+    def reporter (name, opts={})
 
-      @mailto = target
+      @reporters[name] = opts
     end
 
     def rvm (opts)
@@ -203,6 +205,13 @@ module Ci
 
     protected
 
+    def arg (key)
+
+      i = ARGV.index("--#{key}")
+
+      i ? ARGV[i + 1] : nil
+    end
+
     def directory (opts)
 
       "work/#{safe_name}/#{opts[:dir] || @opts[:dir] || '.'}/"
@@ -218,7 +227,53 @@ module Ci
       @name.gsub(/[\s]/, '_')
     end
 
-    def send_mail
+    def emit_report
+
+      only = ARGV.collect { |a|
+        m = a.match(/^--only-(.+)$/)
+        m ? m[1] : nil
+      }.compact.first.to_sym
+
+      raise ArgumentError.new(
+        "no :#{only} reporter"
+      ) if only and @reporters[only].nil?
+
+      reporters = @reporters[only] ? [ only ] : @reporters.keys
+
+      reporters.each do |name|
+        next if ARGV.include?("--no-#{name}")
+        opts = @reporters[name]
+        self.send("report_#{name}", opts)
+      end
+    end
+
+    def report_s3 (opts)
+
+      require 'aws/s3'
+
+      AWS::S3::Base.establish_connection!(
+        :access_key_id => opts[:access_key_id],
+        :secret_access_key => opts[:secret_access_key])
+
+      time = Time.now.strftime('%Y%m%d_%H%M')
+      success = @exitstatus == 0 ? 'ok' : 'FAILED'
+
+      fname = "#{time}__#{safe_name}__#{success}.txt"
+
+      AWS::S3::S3Object.store(
+        fname, @message.join("\n"), opts[:bucket], :access => :public_read)
+    end
+
+    def report_stdout (opts)
+
+      puts
+      puts '=' * 80
+      puts @exitstatus == 0 ? '[ok]' : '[FAILED]'
+      puts '-' * 80
+      puts @message.join("\n")
+    end
+
+    def report_mail (opts)
 
       say("Task took #{Time.now - @start} seconds.")
 
@@ -231,23 +286,14 @@ module Ci
       success = @exitstatus == 0 ? '[ok]' : '[FAILED]'
 
       h = {}
-      h['From'] = "ruote ci<ci@#{`hostname -f`.strip}>"
+      h['From'] = opts[:from] || "ruote ci<ci@#{`hostname -f`.strip}>"
       h['Subject'] = "#{success} #{@name} #{st}"
       h = h.collect { |k, v| "-a \"#{k}: #{v}\"" }.join(' ')
 
-      fname = "logs/#{safe_name}_#{st}.txt"
+      fname = "tmp/#{safe_name}_#{st}.txt"
 
-      if ARGV.include?('--no-email')
-
-        puts "=" * 80
-        puts @message.join("\n")
-        puts "=" * 80
-
-      else
-
-        File.open(fname, 'w') { |f| f.puts(@message.join("\r\n")) }
-        `cat #{fname} | mail #{h} "#{@mailto}"`
-      end
+      File.open(fname, 'w') { |f| f.puts(@message.join("\r\n")) }
+      `cat #{fname} | mail #{h} "#{@mailto}"`
     end
   end
 

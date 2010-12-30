@@ -1,5 +1,5 @@
 #!/bin/bash
 
-source /home/jmettraux/.rvm/scripts/rvm
+source $HOME/.rvm/scripts/rvm
 cd . && ruby $1
 
