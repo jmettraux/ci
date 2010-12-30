@@ -4,6 +4,7 @@ require 'ci'
 
 Ci::all do
 
+  sh 'uname -a'
   sh 'rvm -v'
 
   reporter :stdout

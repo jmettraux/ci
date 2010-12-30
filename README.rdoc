@@ -12,15 +12,13 @@ I have
 
   # /etc/cron.d/ruote_ci
 
-  00 11 * * * jmettraux cd ~/ci && ./ci_runner.sh ruote_ci.rb
-  00 18 * * * jmettraux cd ~/ci && ./ci_runner.sh ruote_ci.rb
-  00 01 * * * jmettraux cd ~/ci && ./ci_runner.sh ruote_ci.rb
+  00 18 * * * jmettraux cd ~/ci && ./ci_runner.sh ruote_ci.rb > ~/ci/lastrun.txt 2>&1
 
 ci_runner.sh makes sure RVM is available
 
   #!/bin/bash
   source $HOME/.rvm/scripts/rvm
-  cd . && ruby $1
+  cd . && ruby $*
 
 the ci tasks (ruote_ci.rb) look like
 
@@ -28,6 +26,7 @@ the ci tasks (ruote_ci.rb) look like
 
   Ci::all do
 
+    sh 'uname -a'
     sh 'rvm -v'
 
     reporter :stdout
