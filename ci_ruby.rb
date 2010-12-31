@@ -29,6 +29,7 @@ $stderr = $stdout
 if ARGV.first == ':bundle'
 
   ARGV.clear
+  #ARGV.concat(%w[ install --verbose --no-color --path ci_vendor ])
   ARGV.concat(%w[ install --no-color --path ci_vendor ])
 
   load(`which bundle`.chop)

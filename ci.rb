@@ -322,7 +322,8 @@ module Ci
     def save (dir)
 
       FileUtils.rm(File.join(dir, 'Gemfile.lock')) rescue nil
-        # always the latest
+      FileUtils.rm_rf(File.join(dir, 'ci_vendor')) rescue nil
+        # nuking it all, to make sure the latest version is used :-(
 
       File.open(File.join(dir, 'Gemfile'), 'wb') do |f|
         f.puts("#")
