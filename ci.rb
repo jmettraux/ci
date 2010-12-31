@@ -39,9 +39,14 @@ module Ci
     @all
   end
 
-  def self.bundle (name, &block)
+  def self.bundle (opt, &block)
 
-    (@bundles ||= {})[name] = block
+    name = opt
+    deps = []
+    name, deps = opt.first if opt.is_a?(Hash)
+    deps = Array(deps)
+
+    (@bundles ||= {})[name] = [ deps, block ]
   end
 
   def self.bundles
@@ -114,22 +119,11 @@ module Ci
       @opts[:rvm] = opts[:use]
     end
 
-#    def git (repo, opts={})
-#
-#      m = repo.match(/\/([^\/]+)\.git/)
-#
-#      dir = m[1]
-#
-#      sh("rm -fR #{dir}", opts)
-#      sh("git clone --quiet #{repo}", opts)
-#    end
-
     def bundle (name, opts={})
 
-      block = Ci.bundles[name]
-
       context = BundleContext.new
-      context.instance_eval(&block)
+
+      do_bundle(context, name, opts)
 
       context.save(directory(opts))
 
@@ -204,6 +198,13 @@ module Ci
     end
 
     protected
+
+    def do_bundle (context, name, opts)
+
+      deps, block = Ci.bundles[name]
+      deps.each { |dep| do_bundle(context, dep, opts) }
+      context.instance_eval(&block)
+    end
 
     def arg (key)
 
