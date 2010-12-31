@@ -195,6 +195,8 @@ module Ci
       say("  #{command}")
       say("failed with")
       say("  #{e.class} : #{e}")
+      #e.backtrace.each { |line| say("    #{line}") }
+        # backtrace is the one in the main process, not the one in the child
     end
 
     protected
