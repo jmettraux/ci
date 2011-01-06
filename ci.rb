@@ -260,7 +260,7 @@ module Ci
         :access_key_id => opts[:access_key_id],
         :secret_access_key => opts[:secret_access_key])
 
-      time = Time.now.strftime('%a_%Y%m%d_%H%M')
+      time = Time.now.strftime('%Y%m%d_%a_%H%M')
       success = @exitstatus == 0 ? 'ok' : 'FAILED'
 
       fname = "#{time}__#{safe_name}__#{success}.txt"
