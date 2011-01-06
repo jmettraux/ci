@@ -29,8 +29,12 @@ $stderr = $stdout
 if ARGV.first == ':bundle'
 
   ARGV.clear
-  #ARGV.concat(%w[ install --verbose --no-color --path ci_vendor ])
-  ARGV.concat(%w[ install --no-color --path ci_vendor ])
+
+  if File.exist?('Gemfile.lock')
+    ARGV.concat(%w[ update ])
+  else
+    ARGV.concat(%w[ install --no-color --path ci_vendor ])
+  end
 
   load(`which bundle`.chop)
 
