@@ -52,14 +52,17 @@ else
   gem = m[1]
   path = m[2]
 
-  regex0 = /\/#{gem}-[0-9a-f\.]+#{path.gsub(/\//, '\/')}$/
-  regex1 = /\/#{raw_path.gsub(/\//, '\/')}$/
+  #regex0 = /\/#{gem}-[0-9a-f\.]+#{path.gsub(/\//, '\/')}$/
+  #regex1 = /\/#{raw_path.gsub(/\//, '\/')}$/
+  #paths = Dir['ci_vendor/**/*.rb']
+  #target =
+  #  paths.find { |pa| regex0.match(pa) } ||
+  #  paths.find { |pa| regex1.match(pa) }
+    #
+    # now leveraging `bundle show ...`
 
-  paths = Dir['ci_vendor/**/*.rb']
-
-  target =
-    paths.find { |pa| regex0.match(pa) } ||
-    paths.find { |pa| regex1.match(pa) }
+  gempath = `bundle show #{gem}`.strip
+  target = File.join(gempath, path)
 
   raise ArgumentError.new(
     "found nothing to run for '#{raw_path}'"
