@@ -24,28 +24,18 @@
 
 
 $stderr = $stdout
+  # yes, 2>&1
 
 
-if ARGV.first == ':bundle'
-
-  ARGV.clear
-
-  if File.exist?('Gemfile.lock')
-    ARGV.concat(%w[ update ])
-  else
-    ARGV.concat(%w[ install --no-color --path ci_vendor ])
-  end
-
-  load(`which bundle`.chop)
-
-else
+# Given a path like "ruote/test/test.rb" or "ruote-kit/spec/" returns
+# the absolute "bundled" path...
+#
+def locate(raw_path)
 
   $:.unshift('.') unless $:.include?('.')
 
   require 'rubygems'
   require 'bundler/setup'
-
-  raw_path = ARGV.shift
 
   m = raw_path.match(/^([^\/]+)(\/.+)$/)
 
@@ -68,6 +58,32 @@ else
     "found nothing to run for '#{raw_path}'"
   ) unless target
 
-  load(target)
+  target
+end
+
+
+if ARGV.first == 'bundle'
+
+  ARGV.clear
+
+  if File.exist?('Gemfile.lock')
+    ARGV.concat(%w[ update ])
+  else
+    ARGV.concat(%w[ install --no-color --path ci_vendor ])
+    #ARGV.concat(%w[ install --binstubs --no-color --path ci_vendor ])
+  end
+
+  load(`which bundle`.chop)
+
+elsif ARGV.first == 'rspec'
+
+  ARGV.unshift('exec')
+  ARGV << locate(ARGV.pop)
+
+  load(`which bundle`.chop)
+
+else
+
+  load(locate(ARGV.shift))
 end
 

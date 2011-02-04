@@ -127,7 +127,12 @@ module Ci
 
       context.save(directory(opts))
 
-      ruby(':bundle')
+      ruby('bundle')
+    end
+
+    def rspec (*args)
+
+      ruby('rspec', *args)
     end
 
     def ruby (*args)
