@@ -195,10 +195,15 @@ module Ci
 
       status.exitstatus
 
-    rescue Exception => e
-      say("command")
+    rescue => e
+      say('')
+      say(@output)
+      say('')
+      say('-X-')
+      say('')
+      say('command')
       say("  #{command}")
-      say("failed with")
+      say('failed with')
       say("  #{e.class} : #{e}")
       #e.backtrace.each { |line| say("    #{line}") }
         # backtrace is the one in the main process, not the one in the child
