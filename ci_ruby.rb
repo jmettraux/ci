@@ -78,7 +78,9 @@ if ARGV.first == 'bundle'
 elsif ARGV.first == 'rspec'
 
   ARGV.unshift('exec')
-  ARGV << locate(ARGV.pop)
+  spec_dir = locate(ARGV.pop)
+  ARGV << "-I#{spec_dir}" # grrr
+  ARGV << spec_dir
 
   load(`which bundle`.chop)
 
