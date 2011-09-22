@@ -32,14 +32,14 @@ require 'open4'
 
 module Ci
 
-  def self.all (&block)
+  def self.all(&block)
 
     @all = block if block
 
     @all
   end
 
-  def self.bundle (opt, &block)
+  def self.bundle(opt, &block)
 
     name = opt
     deps = []
@@ -54,7 +54,7 @@ module Ci
     @bundles
   end
 
-  def self.task (name, &block)
+  def self.task(name, &block)
 
     Context.new(name, &block)
   end
@@ -63,7 +63,7 @@ module Ci
 
     CI_RUBY = File.expand_path(File.join(File.dirname(__FILE__)), 'ci_ruby.rb')
 
-    def initialize (name, &block)
+    def initialize(name, &block)
 
       @name = name.to_s
 
@@ -100,7 +100,7 @@ module Ci
       emit_report
     end
 
-    def options (opts={})
+    def options(opts={})
 
       if opts == :clear
         @opts.clear
@@ -109,17 +109,17 @@ module Ci
       end
     end
 
-    def reporter (name, opts={})
+    def reporter(name, opts={})
 
       @reporters[name] = opts
     end
 
-    def rvm (opts)
+    def rvm(opts)
 
       @opts[:rvm] = opts[:use]
     end
 
-    def bundle (name, opts={})
+    def bundle(name, opts={})
 
       context = BundleContext.new
 
@@ -130,12 +130,12 @@ module Ci
       ruby('bundle')
     end
 
-    def rspec (*args)
+    def rspec(*args)
 
       ruby('rspec', *args)
     end
 
-    def ruby (*args)
+    def ruby(*args)
 
       opts = args.last.is_a?(Hash) ? args.pop : {}
 
@@ -153,7 +153,7 @@ module Ci
       @exitstatus = exitstatus if exitstatus != 0
     end
 
-    def sh (command, opts={})
+    def sh(command, opts={})
 
       command = Array(command)
 
@@ -211,26 +211,26 @@ module Ci
 
     protected
 
-    def do_bundle (context, name, opts)
+    def do_bundle(context, name, opts)
 
       deps, block = Ci.bundles[name]
       deps.each { |dep| do_bundle(context, dep, opts) }
       context.instance_eval(&block)
     end
 
-    def arg (key)
+    def arg(key)
 
       i = ARGV.index("--#{key}")
 
       i ? ARGV[i + 1] : nil
     end
 
-    def directory (opts)
+    def directory(opts)
 
       "work/#{safe_name}/#{opts[:dir] || @opts[:dir] || '.'}/"
     end
 
-    def say (s)
+    def say(s)
 
       @message << s
     end
@@ -262,7 +262,7 @@ module Ci
       end
     end
 
-    def report_s3 (opts)
+    def report_s3(opts)
 
       require 'aws/s3'
 
@@ -279,7 +279,7 @@ module Ci
         fname, @message.join("\n"), opts[:bucket], :access => :public_read)
     end
 
-    def report_stdout (opts)
+    def report_stdout(opts)
 
       puts
       puts '=' * 80
@@ -288,7 +288,7 @@ module Ci
       puts @message.join("\n")
     end
 
-    def report_mail (opts)
+    def report_mail(opts)
 
       say("Task took #{Time.now - @start} seconds.")
 
@@ -319,17 +319,17 @@ module Ci
       @elements = []
     end
 
-    def source (*args)
+    def source(*args)
 
       @elements << [ 'source', args ]
     end
 
-    def gem (*args)
+    def gem(*args)
 
       @elements << [ 'gem', args ]
     end
 
-    def save (dir)
+    def save(dir)
 
       #FileUtils.rm(File.join(dir, 'Gemfile.lock')) rescue nil
       #FileUtils.rm_rf(File.join(dir, 'ci_vendor')) rescue nil
