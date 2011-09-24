@@ -23,7 +23,6 @@
 #++
 
 
-require 'timeout'
 require 'fileutils'
 
 require 'rubygems'
@@ -153,13 +152,21 @@ module Ci
       @exitstatus = exitstatus if exitstatus != 0
     end
 
+    def child_pids(pid, pids=[])
+
+      pids << pid
+
+      children = `ps --ppid #{pid} | awk '{ print $1 }'`.split("\n")[1..-1]
+      children.each { |c| child_pids(c, pids) }
+
+      pids
+    end
+
     def sh(command, opts={})
 
       command = Array(command)
 
       oo = @opts.merge(opts)
-
-      timeout = oo[:timeout]
 
       say(command.join(' '))
 
@@ -170,24 +177,32 @@ module Ci
 
       FileUtils.mkdir_p(dir)
 
-      Dir.chdir(dir) do
+      status = Dir.chdir(dir) do
 
-        block = lambda {
-          Open4.popen4(*command) do |pid, stdin, stdout, stderr|
-            [ stdout, stderr ].each do |std|
-              loop do
-                s = std.read(28)
-                break unless s
-                @output << s
+        Open4.popen4(*command) do |pid, stdin, stdout, stderr|
+
+          timeout_thread = if to = oo[:timeout]
+            Thread.new do
+              sleep(to)
+              say("** timing out **")
+              child_pids(pid).each do |cp|
+                say("kill -USR2 #{cp}")
+                `kill -USR2 #{cp}`
               end
             end
+          else
+            nil
           end
-        }
 
-        status = if timeout
-          Timeout.timeout(timeout, &block)
-        else
-          block.call
+          [ stdout, stderr ].each do |std|
+            loop do
+              s = std.read(28)
+              break unless s
+              @output << s
+            end
+          end
+
+          timeout_thread.kill if timeout_thread
         end
       end
 
