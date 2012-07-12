@@ -111,10 +111,9 @@ It sends me 1 email per Ci::task. Those emails look like
 
 == credits
 
-Many thanks to the RVM and open4 authors and contributors.
+Many thanks to the RVM authors and contributors.
 
 * http://rvm.beginrescueend.com/
-* http://github.com/ahoward/open4
 
 
 == license

@@ -22,11 +22,11 @@
 # Made in Japan.
 #++
 
+raise "please use a 1.9 Ruby or better" unless RUBY_VERSION > '1.9'
+  # need the latest Open3
 
+require 'open3'
 require 'fileutils'
-
-require 'rubygems'
-require 'open4'
 
 
 module Ci
@@ -60,7 +60,7 @@ module Ci
 
   class Context
 
-    CI_RUBY = File.expand_path(File.join(File.dirname(__FILE__)), 'ci_ruby.rb')
+    CI_RUBY = File.expand_path(File.join(File.dirname(__FILE__), 'ci_ruby.rb'))
 
     def initialize(name, &block)
 
@@ -179,7 +179,9 @@ module Ci
 
       status = Dir.chdir(dir) do
 
-        Open4.popen4(*command) do |pid, stdin, stdout, stderr|
+        Open3.popen3(*command) do |stdin, stdout, stderr, wthrd|
+
+          pid = wthrd.pid
 
           timeout_thread = if to = oo[:timeout]
             Thread.new do
@@ -203,6 +205,8 @@ module Ci
           end
 
           timeout_thread.kill if timeout_thread
+
+          wthrd.value
         end
       end
 
@@ -220,7 +224,7 @@ module Ci
       say("  #{command}")
       say('failed with')
       say("  #{e.class} : #{e}")
-      #e.backtrace.each { |line| say("    #{line}") }
+      e.backtrace.each { |line| say("    #{line}") }
         # backtrace is the one in the main process, not the one in the child
     end
 
@@ -349,6 +353,8 @@ module Ci
       #FileUtils.rm(File.join(dir, 'Gemfile.lock')) rescue nil
       #FileUtils.rm_rf(File.join(dir, 'ci_vendor')) rescue nil
         # nuking it all, to make sure the latest version is used :-(
+
+      FileUtils.mkdir_p(dir) rescue nil
 
       File.open(File.join(dir, 'Gemfile'), 'wb') do |f|
         f.puts("#")
