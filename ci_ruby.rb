@@ -34,10 +34,12 @@ def locate(raw_path)
 
   $:.unshift('.') unless $:.include?('.')
 
+  m = raw_path.match(/^([^\/]+)(\/.+)$/)
+
+  return File.expand_path('../' + raw_path, __FILE__) unless m
+
   require 'rubygems'
   require 'bundler/setup'
-
-  m = raw_path.match(/^([^\/]+)(\/.+)$/)
 
   gem = m[1]
   path = m[2]

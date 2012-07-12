@@ -165,6 +165,7 @@ module Ci
     def sh(command, opts={})
 
       command = Array(command)
+      command.unshift(opts[:env] || {})
 
       oo = @opts.merge(opts)
 
@@ -224,7 +225,7 @@ module Ci
       say("  #{command}")
       say('failed with')
       say("  #{e.class} : #{e}")
-      e.backtrace.each { |line| say("    #{line}") }
+      #e.backtrace.each { |line| say("    #{line}") }
         # backtrace is the one in the main process, not the one in the child
     end
 
