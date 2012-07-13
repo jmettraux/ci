@@ -1,5 +1,5 @@
 #!/bin/bash
 
 source $HOME/.rvm/scripts/rvm
-cd . && ruby $*
+cd . && ruby -I. $*
 
