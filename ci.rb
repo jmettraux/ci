@@ -187,7 +187,7 @@ module Ci
           timeout_thread = if to = oo[:timeout]
             Thread.new do
               sleep(to)
-              say("** timing out **")
+              say("** timing out after #{to} seconds **")
               child_pids(pid).each do |cp|
                 say("kill -USR2 #{cp}")
                 `kill -USR2 #{cp}`
