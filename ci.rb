@@ -144,7 +144,8 @@ module Ci
       command = [ 'ruby', CI_RUBY ] + args
 
       if rvm = opts[:rvm] || @opts[:rvm]
-        command = [ "#{ENV['HOME']}/.rvm/bin/rvm", "#{rvm}," ] + command
+        #command = [ "#{ENV['HOME']}/.rvm/bin/rvm", "#{rvm}," ] + command
+        command = [ "#{ENV['HOME']}/.rvm/bin/rvm", "#{rvm}", "do" ] + command
       end
 
       exitstatus = sh(command, opts)
